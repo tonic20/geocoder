@@ -21,16 +21,16 @@ module Geocoder::Lookup
 
     def parse_raw_data(raw_data)
       encoded_data = if raw_data.respond_to?(:encode)
-        raw_data.encode
+        raw_data.force_encoding('windows-1251')
       else
         Iconv.iconv('windows-1251', 'UTF-8', raw_data).first
       end
 
       if encoded_data.match(/Incorrect request|Not found/)
         return nil
-      else        
+      else
         ip = REXML::Document.new(encoded_data).elements['ip-answer/ip']
-              
+
         result = ip.elements.reduce({}){ |h, el| h[el.name] = el.text; h }
         result['ip'] = ip.attributes['value']
 
@@ -38,7 +38,7 @@ module Geocoder::Lookup
       end
     end
 
-    def results(query)      
+    def results(query)
       return [reserved_result(query.text)] if query.loopback_ip_address?
 
       begin
@@ -55,7 +55,7 @@ module Geocoder::Lookup
         'ip'          => ip,
         'country'     => 'RU',
         'city'        => '',
-        'district'    => '',       
+        'district'    => '',
         "lat"         => '0',
         "lng"         => '0'
       }
@@ -63,7 +63,7 @@ module Geocoder::Lookup
 
     def query_url_params(query)
       {
-        :ip => query.sanitized_text        
+        :ip => query.sanitized_text
       }
     end
   end
